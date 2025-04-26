@@ -41,7 +41,3 @@ Con funcionamiento automático en modo WiFi cliente (STA) o punto de acceso (AP)
 
 ## 🖼️ Esquema de conexión
 
-*(Aquí puedes añadir tu diagrama o una foto de tu prototipo montado)*
-
-```markdown
-![Esquema de conexión](https://via.placeholder.com/800x400?text=Esquema+Conexion+ESP32-C3+GPS+OLED)
