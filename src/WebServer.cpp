@@ -1,6 +1,7 @@
-// Archivo: src/WebServer.cpp (adaptado a AsyncWebServer)
+// Archivo: src/WebServer.cpp (adaptado para LittleFS)
 
 #include <WiFi.h>
+#include <LittleFS.h>
 #include <ESPAsyncWebServer.h>
 #include "GPS.h"
 #include "WebServer.h"
@@ -17,75 +18,20 @@ static int ntpStratum = 16;
 static String utcTimeString = "--:--:--";
 static unsigned long bootMillis = 0;
 
-static const char HTML_PAGE[] PROGMEM = R"rawliteral(
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Estado NTP GPS - ESP32-C3</title>
-  <style>
-    body { font-family: sans-serif; background: #f4f4f4; margin: 0; padding: 20px; text-align: center; }
-    h1 { font-size: 1.5em; margin-bottom: 0.5em; }
-    table { margin: 0 auto; border-collapse: collapse; min-width: 250px; }
-    th, td { padding: 8px 12px; border-bottom: 1px solid #ccc; text-align: left; }
-    th { font-weight: normal; color: #555; }
-    td { font-weight: bold; }
-    .ok { color: green; }
-    .warn { color: orange; }
-    .err { color: red; }
-  </style>
-</head>
-<body>
-  <h1>Estado del Servidor NTP (GPS)</h1>
-  <table>
-    <tr><th>Hora UTC:</th> <td id="time">--:--:--</td></tr>
-    <tr><th>Satélites visibles:</th> <td id="satellites">0</td></tr>
-    <tr><th>Calidad señal GPS:</th> <td id="quality">N/A</td></tr>
-    <tr><th>WiFi SSID:</th> <td id="ssid">--</td></tr>
-    <tr><th>IP local:</th> <td id="ip">--</td></tr>
-    <tr><th>Stratum:</th> <td id="stratum">--</td></tr>
-    <tr><th>Tiempo de actividad:</th> <td id="uptime">--</td></tr>
-    <tr><th>Peticiones NTP:</th> <td id="requests">0</td></tr>
-  </table>
-  <script>
-    async function fetchStatus() {
-      try {
-        const response = await fetch('/status.json');
-        if (!response.ok) throw new Error("HTTP error " + response.status);
-        const data = await response.json();
-        document.getElementById('time').textContent = data.time || "--:--:--";
-        document.getElementById('satellites').textContent = data.satellites;
-        document.getElementById('quality').textContent = data.quality;
-        document.getElementById('ssid').textContent = data.ssid;
-        document.getElementById('ip').textContent = data.ip;
-        document.getElementById('stratum').textContent = data.stratum;
-        document.getElementById('uptime').textContent = data.uptime;
-        document.getElementById('requests').textContent = data.requests;
-
-        const qualityTd = document.getElementById('quality');
-        if (data.quality === "Buena") qualityTd.className = "ok";
-        else if (data.quality === "Débil") qualityTd.className = "warn";
-        else qualityTd.className = "err";
-
-      } catch (e) {
-        console.error("Error obteniendo /status.json:", e);
-      }
-    }
-    setInterval(fetchStatus, 1000);
-    fetchStatus();
-  </script>
-</body>
-</html>
-)rawliteral";
-
 void WebServer_Init() {
     bootMillis = millis();
 
+    if (!LittleFS.begin()) {
+        Serial.println("Error montando LittleFS");
+        return;
+    }
+
+    // Servir index.html desde LittleFS
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(200, "text/html", HTML_PAGE);
+        request->send(LittleFS, "/index.html", "text/html");
     });
 
+    // Servir JSON dinámico
     server.on("/status.json", HTTP_GET, [](AsyncWebServerRequest *request){
         if (WiFi.status() == WL_CONNECTED) {
             wifiSSID = WiFi.SSID();
