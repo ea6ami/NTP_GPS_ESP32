@@ -1,0 +1,24 @@
+# PlatformIO general
+.pio/
+.vscode/
+.idea/
+.clangd/
+.ccls-cache/
+
+# Archivos temporales / compilados
+*.bin
+*.elf
+*.map
+*.pyc
+*.DS_Store
+*.bak
+*.tmp
+
+# Configuraciones locales
+*.code-workspace
+*.swp
+*.swo
+
+# Backup Mac / Windows
+Thumbs.db
+desktop.ini
