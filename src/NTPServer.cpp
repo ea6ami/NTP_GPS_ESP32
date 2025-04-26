@@ -4,6 +4,7 @@
 #include "GPS.h"
 #include <Arduino.h>
 #include <AsyncUDP.h>
+#include "WebServer.h" 
 
 extern volatile unsigned long ntpRequestCount;
 
@@ -23,6 +24,7 @@ bool NTPServer_Init() {
 }
 
 void ProcessNTPRequest(AsyncUDPPacket& packet) {
+    addNTPRequestHistory(GPS_GetTimeString());
     ntpRequestCount++;
 
     if (packet.length() < 48) {

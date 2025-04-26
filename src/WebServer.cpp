@@ -1,10 +1,11 @@
-// Archivo: src/WebServer.cpp (adaptado para LittleFS)
+// Archivo: src/WebServer.cpp (adaptado para Dashboard avanzado)
 
 #include <WiFi.h>
 #include <LittleFS.h>
 #include <ESPAsyncWebServer.h>
 #include "GPS.h"
 #include "WebServer.h"
+#include "NTPServer.h"
 
 // Variables globales
 volatile unsigned long ntpRequestCount = 0;
@@ -18,6 +19,17 @@ static int ntpStratum = 16;
 static String utcTimeString = "--:--:--";
 static unsigned long bootMillis = 0;
 
+// Buffer circular para historial de peticiones NTP
+#define HISTORY_SIZE 10
+static String ntpRequestHistory[HISTORY_SIZE];
+static int ntpRequestHistoryIndex = 0;
+
+// Función para agregar una entrada al historial
+void addNTPRequestHistory(const String& timestamp) {
+    ntpRequestHistory[ntpRequestHistoryIndex] = timestamp;
+    ntpRequestHistoryIndex = (ntpRequestHistoryIndex + 1) % HISTORY_SIZE;
+}
+
 void WebServer_Init() {
     bootMillis = millis();
 
@@ -26,12 +38,13 @@ void WebServer_Init() {
         return;
     }
 
-    // Servir index.html desde LittleFS
+    // Servir la página principal desde LittleFS
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
         request->send(LittleFS, "/index.html", "text/html");
     });
 
-    // Servir JSON dinámico
+    
+    // Servir el estado JSON actualizado
     server.on("/status.json", HTTP_GET, [](AsyncWebServerRequest *request){
         if (WiFi.status() == WL_CONNECTED) {
             wifiSSID = WiFi.SSID();
@@ -62,7 +75,19 @@ void WebServer_Init() {
         json += "\"ip\":\"" + wifiIP + "\",";
         json += "\"stratum\":" + String(ntpStratum) + ",";
         json += "\"uptime\":\"" + String(uptimeStr) + "\",";
-        json += "\"requests\":" + String(ntpRequestCount);
+        json += "\"requests\":" + String(ntpRequestCount) + ",";
+
+        // Agregar historial de peticiones NTP
+        json += "\"history\":[";
+        for (int i = 0; i < HISTORY_SIZE; i++) {
+            int idx = (ntpRequestHistoryIndex + i) % HISTORY_SIZE;
+            if (ntpRequestHistory[idx].length() > 0) {
+                json += "\"" + ntpRequestHistory[idx] + "\"";
+                if (i != HISTORY_SIZE - 1) json += ",";
+            }
+        }
+        json += "]";
+
         json += "}";
 
         request->send(200, "application/json", json);

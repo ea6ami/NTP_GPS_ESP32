@@ -5,5 +5,6 @@
 
 void WebServer_Init();
 void WebServer_Loop();
+void addNTPRequestHistory(const String& timestamp);
 
 #endif // WEBSERVER_H

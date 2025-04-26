@@ -6,7 +6,7 @@
   <title>Estado NTP GPS - ESP32-C3</title>
   <style>
     body { font-family: sans-serif; background: #f4f4f4; margin: 0; padding: 20px; text-align: center; }
-    h1 { font-size: 1.5em; margin-bottom: 0.5em; }
+    h1 { font-size: 1.8em; margin-bottom: 0.5em; }
     table { margin: 0 auto; border-collapse: collapse; min-width: 250px; }
     th, td { padding: 8px 12px; border-bottom: 1px solid #ccc; text-align: left; }
     th { font-weight: normal; color: #555; }
@@ -14,47 +14,94 @@
     .ok { color: green; }
     .warn { color: orange; }
     .err { color: red; }
+    .small { font-size: 0.9em; color: #777; }
   </style>
 </head>
 <body>
-  <h1>Estado del Servidor NTP (GPS)</h1>
+
+<h1>Servidor NTP GPS - ESP32-C3</h1>
+
+<div id="utcTime" style="font-size:2em; margin:20px 0;">--:--:--</div>
+
+<div class="card">
+  <h3>Estado del sistema</h3>
   <table>
-    <tr><th>Hora UTC:</th> <td id="time">--:--:--</td></tr>
-    <tr><th>Satélites visibles:</th> <td id="satellites">0</td></tr>
-    <tr><th>Calidad señal GPS:</th> <td id="quality">N/A</td></tr>
-    <tr><th>WiFi SSID:</th> <td id="ssid">--</td></tr>
-    <tr><th>IP local:</th> <td id="ip">--</td></tr>
-    <tr><th>Stratum:</th> <td id="stratum">--</td></tr>
-    <tr><th>Tiempo de actividad:</th> <td id="uptime">--</td></tr>
-    <tr><th>Peticiones NTP:</th> <td id="requests">0</td></tr>
+    <tr><th>Satélites:</th><td id="satellites">0</td></tr>
+    <tr><th>Señal GPS:</th><td id="quality" class="err">Sin señal</td></tr>
+    <tr><th>Modo WiFi:</th><td id="wifiMode">--</td></tr>
+    <tr><th>SSID:</th><td id="wifiSSID">--</td></tr>
+    <tr><th>IP Local:</th><td id="wifiIP">--</td></tr>
+    <tr><th>Stratum:</th><td id="stratum">--</td></tr>
+    <tr><th>Uptime:</th><td id="uptime">--</td></tr>
+    <tr><th>Total NTP Requests:</th><td id="requests">0</td></tr>
   </table>
-  <script>
-    async function fetchStatus() {
-      try {
-        const response = await fetch('/status.json');
-        if (!response.ok) throw new Error("HTTP error " + response.status);
-        const data = await response.json();
-        document.getElementById('time').textContent = data.time || "--:--:--";
-        document.getElementById('satellites').textContent = data.satellites;
-        document.getElementById('quality').textContent = data.quality;
-        document.getElementById('ssid').textContent = data.ssid;
-        document.getElementById('ip').textContent = data.ip;
-        document.getElementById('stratum').textContent = data.stratum;
-        document.getElementById('uptime').textContent = data.uptime;
-        document.getElementById('requests').textContent = data.requests;
+</div>
 
-        const qualityTd = document.getElementById('quality');
-        if (data.quality === "Buena") qualityTd.className = "ok";
-        else if (data.quality === "Débil") qualityTd.className = "warn";
-        else qualityTd.className = "err";
+<div class="card" style="margin-top: 30px;">
+  <h3>Últimas 10 solicitudes NTP</h3>
+  <table id="historyTable">
+    <thead>
+      <tr><th>#</th><th>Hora</th></tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+</div>
 
-      } catch (e) {
-        console.error("Error obteniendo /status.json:", e);
-      }
+<script>
+const utcElem = document.getElementById('utcTime');
+const satElem = document.getElementById('satellites');
+const qualityElem = document.getElementById('quality');
+const wifiModeElem = document.getElementById('wifiMode');
+const wifiSSIDElem = document.getElementById('wifiSSID');
+const wifiIPElem = document.getElementById('wifiIP');
+const stratumElem = document.getElementById('stratum');
+const uptimeElem = document.getElementById('uptime');
+const requestsElem = document.getElementById('requests');
+const historyTable = document.getElementById('historyTable').querySelector('tbody');
+
+async function fetchStatus() {
+    try {
+        const res = await fetch('/status.json');
+        const data = await res.json();
+
+        utcElem.textContent = data.time || "--:--:--";
+        satElem.textContent = data.satellites;
+        qualityElem.textContent = data.quality;
+        wifiModeElem.textContent = (data.stratum === 1) ? "Cliente WiFi" : "AP Modo";
+        wifiSSIDElem.textContent = data.ssid;
+        wifiIPElem.textContent = data.ip;
+        stratumElem.textContent = data.stratum;
+        uptimeElem.textContent = data.uptime;
+        requestsElem.textContent = data.requests;
+
+        // Ajustar color calidad GPS
+        if (data.quality === "Buena") {
+            qualityElem.className = "ok";
+        } else if (data.quality === "Débil") {
+            qualityElem.className = "warn";
+        } else {
+            qualityElem.className = "err";
+        }
+
+        // Actualizar tabla historial
+        historyTable.innerHTML = '';
+        if (data.history && data.history.length > 0) {
+            data.history.forEach((ts, idx) => {
+                if (ts && ts.length > 0) {
+                    const row = `<tr><td>${idx + 1}</td><td>${ts}</td></tr>`;
+                    historyTable.innerHTML += row;
+                }
+            });
+        }
+    } catch (e) {
+        console.error('Error al obtener estado:', e);
     }
-    setInterval(fetchStatus, 1000);
-    fetchStatus();
-  </script>
+}
+
+setInterval(fetchStatus, 1000);
+fetchStatus();
+</script>
+
 </body>
 </html>
-
