@@ -18,7 +18,7 @@ bool loadWiFiConfig() {
         return false;
     }
 
-    File configFile = LittleFS.open("/config.json", "r");
+    File configFile = LittleFS.open("/config.json", "r", false);
     if (!configFile || configFile.isDirectory()) {
         Serial.println("Error abriendo config.json");
         return false;

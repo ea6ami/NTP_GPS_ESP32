@@ -21,4 +21,6 @@ int GPS_GetSats();
 // Utiliza variables atómicas protegidas para evitar incoherencias con la ISR
 void GPS_GetTime(uint32_t &epochSeconds, uint32_t &microseconds);
 
+String GPS_GetTimeString();
+
 #endif
