@@ -13,6 +13,10 @@ static volatile unsigned long lastPPSMicros = 0; // Timestamp micros() del últi
 static volatile bool newGPSfix = false;         // Señala que se obtuvo una nueva hora del GPS (NMEA) a la espera del siguiente PPS
 static volatile uint32_t gpsEpoch = 0;          // Epoch (s) de la última hora recibida por NMEA
 
+static unsigned long lastGPSDataMillis = 0;
+static const unsigned long GPS_DATA_TIMEOUT_MS = 30000; // 30 segundos
+
+
 // ISR para el pulso PPS del GPS (se llama en cada flanco ascendente de PPS)
 void IRAM_ATTR onGPSPPS() {
     unsigned long now = micros();
@@ -47,7 +51,8 @@ void GPS_Update() {
     // Leer todos los bytes disponibles del GPS serial
     while (gpsSerial.available() > 0) {
         char c = gpsSerial.read();
-        gps.encode(c);  // Alimentar el parser TinyGPS++
+        gps.encode(c);
+        lastGPSDataMillis = millis(); // <- actualizamos timestamp cuando recibimos datos
     }
     // Verificar si se recibió nueva información de tiempo del GPS
     if (gps.time.isUpdated() && gps.date.isUpdated()) {
@@ -74,9 +79,12 @@ void GPS_Update() {
             // Marcar flag de nuevo fix obtenido
             newGPSfix = true;
         }
-    }
+    }    
     // Si no se ha sincronizado aún el tiempo global, no marcar como timeSync hasta que llegue PPS (ver ISR)
     // Si ya está sincronizado, podemos actualizar 'gpsEpoch' cada segundo para corrección (no necesaria aquí dado PPS)
+    if (timeSync && millis() - lastGPSDataMillis > GPS_DATA_TIMEOUT_MS) {
+        timeSync = false; // Perdimos señal válida de GPS
+    }
 }
 
 // Indica si el tiempo GPS se ha sincronizado al menos una vez (hay hora válida)

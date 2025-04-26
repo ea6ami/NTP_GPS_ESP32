@@ -3,6 +3,7 @@
 #include "GPS.h"
 #include "WiFiConn.h"
 #include <Wire.h>
+#include <time.h>
 
 // Crear instancia de display OLED (I2C)
 static Adafruit_SSD1306 display(OLED_WIDTH, OLED_HEIGHT, &Wire);

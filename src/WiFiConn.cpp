@@ -42,6 +42,8 @@ bool loadWiFiConfig() {
     wifi_ssid = doc["wifi_ssid"].as<String>();
     wifi_password = doc["wifi_password"].as<String>();
 
+    configFile.close();
+
     Serial.println("SSID leido: " + wifi_ssid);
     return true;
 }

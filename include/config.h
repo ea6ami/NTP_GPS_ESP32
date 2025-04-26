@@ -19,7 +19,7 @@ constexpr uint32_t NTP_EPOCH_OFFSET = 2208988800UL; // Segundos entre Epoch NTP(
 
 // ===== Otros parámetros =====
 constexpr uint8_t  NTP_STRATUM  = 1;     // Stratum del servidor (1 = referencia primaria GPS)
-constexpr int8_t   NTP_PRECISION = -20;  // Precisión en log2 (e.g., -20 ~ 1 microsegundo)&#8203;:contentReference[oaicite:9]{index=9}
+constexpr int8_t   NTP_PRECISION = -20;  // Precisión en log2 (e.g., -20 ~ 1 microsegundo)
 constexpr uint32_t GPS_BAUD     = 9600;  // Baud rate por defecto del módulo GPS
 constexpr unsigned long GPS_TIMEOUT_MS = 5000; // Tiempo máx sin datos GPS para considerarlo perdido
 
