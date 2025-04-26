@@ -12,9 +12,6 @@ constexpr uint8_t OLED_ADDR = 0x3C;  // Dirección I2C de la pantalla OLED
 constexpr int OLED_WIDTH    = 128;
 constexpr int OLED_HEIGHT   = 64;
 
-// ===== Configuración de WiFi =====
-#define WIFI_SSID     "Tu_SSID"         // <<-- REEMPLAZAR por el SSID de la red WiFi
-#define WIFI_PASSWORD "Tu_PASWORD"      // <<-- REEMPLAZAR por la contraseña de la red
 
 // ===== Configuración de servidor NTP =====
 constexpr uint16_t NTP_PORT = 123;       // Puerto UDP para NTP (123 por defecto)

@@ -100,6 +100,42 @@ Puedes conectar cualquier dispositivo a este AP y solicitar hora NTP directament
 
 ---
 
+## 🛠️ Gestión de configuración WiFi dinámica (LittleFS + config.json)
+
+Este proyecto permite almacenar la configuración WiFi en un archivo JSON externo, ubicado en el sistema de archivos del ESP32 (LittleFS).  
+Esto permite cambiar el WiFi **sin necesidad de recompilar el firmware**.
+
+### 1. Archivo `config.json`
+
+Dentro de la carpeta `/data/` del proyecto, crear el archivo:
+
+```json
+{
+  "wifi_ssid": "MiRedWifi",
+  "wifi_password": "MiClaveSecreta"
+}
+```
+
+Cambiar los valores según tu red WiFi real.
+
+### 2. Subir el Filesystem al ESP32
+
+- En PlatformIO:
+  - Clic en **PlatformIO** (icono de hormiga 🐜).
+  - Elegir **Upload Filesystem Image**.
+
+Esto cargará el archivo `config.json` en el sistema de archivos LittleFS del ESP32.
+
+🔥 **Nota:** No es necesario instalar librerías adicionales para LittleFS, ya está incluido en el framework oficial de ESP32 (`arduinoespressif32`).
+
+### 3. Funcionamiento en el firmware
+
+- Al arrancar, el ESP32 intentará leer `/config.json`.
+- Si encuentra el SSID y contraseña correctos, intentará conectarse automáticamente.
+- Si no encuentra `config.json`, o no puede conectarse, crea su propio Access Point.
+
+---
+
 ## 📄 Licencia
 
 MIT License.  

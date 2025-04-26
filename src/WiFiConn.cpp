@@ -1,26 +1,75 @@
 #include "WiFiConn.h"
 #include <Arduino.h>
+#include <LittleFS.h>        // Archivo para acceder al sistema de archivos
+#include <ArduinoJson.h>     // Archivo para manejar JSON
 
 static bool isAPMode = false;
+static String wifi_ssid = "";
+static String wifi_password = "";
+
+bool loadWiFiConfig() {
+    if (!LittleFS.begin(true)) {  // OJO: true para formatear si falla
+        Serial.println("Error montando LittleFS");
+        return false;
+    }
+
+    if (!LittleFS.exists("/config.json")) {
+        Serial.println("No existe /config.json");
+        return false;
+    }
+
+    File configFile = LittleFS.open("/config.json", "r");
+    if (!configFile || configFile.isDirectory()) {
+        Serial.println("Error abriendo config.json");
+        return false;
+    }
+
+    size_t size = configFile.size();
+    if (size > 1024) {
+        Serial.println("Archivo config.json demasiado grande");
+        return false;
+    }
+
+    DynamicJsonDocument doc(1024);
+    DeserializationError error = deserializeJson(doc, configFile);
+
+    if (error) {
+        Serial.print("Error parsing config.json: ");
+        Serial.println(error.c_str());
+        return false;
+    }
+
+    wifi_ssid = doc["wifi_ssid"].as<String>();
+    wifi_password = doc["wifi_password"].as<String>();
+
+    Serial.println("SSID leido: " + wifi_ssid);
+    return true;
+}
 
 void WiFi_Init() {
+    if (!loadWiFiConfig()) {
+        Serial.println("Fallo en configuración WiFi, creando AP...");
+        WiFi.mode(WIFI_AP);
+        WiFi.softAP("Servidor_NTP_GPS", "12345678");
+        isAPMode = true;
+        return;
+    }
+
     WiFi.mode(WIFI_STA);
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    WiFi.begin(wifi_ssid.c_str(), wifi_password.c_str());
     unsigned long startAttemptTime = millis();
 
-    // Intentar conectar como cliente (STA) durante 10 segundos
     while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 10000) {
         delay(100);
     }
 
     if (WiFi.status() == WL_CONNECTED) {
-        Serial.println("Conectado a WiFi!");
+        Serial.println("Conectado a red WiFi: " + wifi_ssid);
     } else {
-        Serial.println("No se pudo conectar a WiFi. Creando Access Point...");
+        Serial.println("No conectado, creando AP...");
         WiFi.mode(WIFI_AP);
-        WiFi.softAP("Servidor_NTP_GPS", "12345678");  // Nombre y contraseña del AP
+        WiFi.softAP("Servidor_NTP_GPS", "12345678");
         isAPMode = true;
-        Serial.println("AP creado: Servidor_NTP_GPS");
     }
 }
 
