@@ -1,7 +1,5 @@
 # NTP GPS Stratum 1 Server - ESP32-C3
 
-# NTP GPS Stratum 1 Server - ESP32-C3
-
 Servidor NTP de estrato 1 utilizando GPS con PPS, pantalla OLED y ESP32-C3.  
 Con funcionamiento automático en modo WiFi cliente (STA) o punto de acceso (AP) cuando no se detecta red disponible.
 
