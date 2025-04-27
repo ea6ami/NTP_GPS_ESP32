@@ -13,6 +13,7 @@
 
 void setup() {
     Serial.begin(115200);
+    delay(5000);
     Serial.println("Iniciando sistema...");
 
     WiFi_Init();
