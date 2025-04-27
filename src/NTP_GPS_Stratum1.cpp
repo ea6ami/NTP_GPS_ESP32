@@ -10,11 +10,16 @@
 #include "NTPServer.h"
 #include "Display.h"
 #include "WebServer.h"
+#include "ConfigManager.h"
 
 void setup() {
     Serial.begin(115200);
     delay(5000);
     Serial.println("Iniciando sistema...");
+
+    if (!ConfigManager_Load()) {
+        Serial.println("Error cargando configuración. Usando valores por defecto...");
+    }
 
     WiFi_Init();
     WebServer_Init();

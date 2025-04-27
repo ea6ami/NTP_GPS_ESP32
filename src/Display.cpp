@@ -4,6 +4,7 @@
 #include "WiFiConn.h"
 #include <Wire.h>
 #include <time.h>
+#include <ConfigManager.h>
 
 // Crear instancia de display OLED (I2C)
 static Adafruit_SSD1306 display(OLED_WIDTH, OLED_HEIGHT, &Wire);
@@ -68,8 +69,11 @@ void Display_Update() {
         display.print(F("WiFi OK: "));
         display.println(ipStr);
     } else if (WiFi_IsAPMode()) {
-        display.println(F("AP: Servidor_NTP_GPS"));
-        display.println(F("Clave: 12345678"));
+        // Mostrar SSID y Password del AP configurado
+        display.print(F("AP: "));
+        display.println(ConfigManager_GetAPSSID());
+        display.print(F("Clave: "));
+        display.println(ConfigManager_GetAPPassword());
         IPAddress apIP = WiFi_GetLocalIP();
         String apIpStr = String(apIP[0]) + "." + String(apIP[1]) + "." + String(apIP[2]) + "." + String(apIP[3]);
         display.print(F("IP: "));
