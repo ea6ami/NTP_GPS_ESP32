@@ -74,7 +74,7 @@ Descargar e instalar desde [https://code.visualstudio.com/](https://code.visuals
 ### 3. Clonar el proyecto
 
 ```bash
-git clone https://github.com/tu-usuario/NTP_GPS_Stratum1.git
+git clone https://github.com/ea6ami/NTP_GPS_Stratum1.git
 ```
 
 O descargar el repositorio como `.zip` y extraerlo.
