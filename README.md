@@ -1,11 +1,13 @@
 # NTP GPS Stratum 1 Server - ESP32-C3
 
+# NTP GPS Stratum 1 Server - ESP32-C3
+
 Servidor NTP de estrato 1 utilizando GPS con PPS, pantalla OLED y ESP32-C3.  
 Con funcionamiento automático en modo WiFi cliente (STA) o punto de acceso (AP) cuando no se detecta red disponible.
 
 ---
 
-## 📦 Características principales
+## 🎟️ Características principales
 
 - Sincronización precisa de tiempo usando GPS + PPS.
 - Servidor NTP accesible en red local o a través de AP propio.
@@ -13,6 +15,12 @@ Con funcionamiento automático en modo WiFi cliente (STA) o punto de acceso (AP)
   - Hora y fecha UTC
   - Estado de la señal GPS
   - Estado de conexión WiFi o AP
+- Interfaz web integrada para monitorizar:
+  - Hora UTC en vivo
+  - Satélites visibles
+  - Calidad de señal GPS
+  - Estado de WiFi y IP
+  - Estado del servidor NTP (stratum, uptime, peticiones)
 - Fallback automático si no hay WiFi → crea su propio Access Point.
 - Watchdog activo para máxima estabilidad en campo.
 - Control de versiones automático (`version.h`).
@@ -100,6 +108,26 @@ Puedes conectar cualquier dispositivo a este AP y solicitar hora NTP directament
 
 ---
 
+## 🖥️ Acceso Web de Monitoreo
+
+Una vez el ESP32 esté operativo (ya sea en modo STA o AP), puedes acceder desde cualquier navegador web a su IP local:
+
+- **URL**: `http://<IP-DEL-ESP32>/`
+
+La página mostrará en tiempo real:
+
+- Hora UTC actualizada
+- Número de satélites recibidos
+- Calidad de señal GPS (Buena, Débil, Sin señal)
+- Estado de red WiFi o AP
+- Stratum (estrato NTP)
+- Uptime del dispositivo
+- Histórico de últimas 10 peticiones NTP
+
+🔄 Sin dependencias externas. Funcionamiento rápido y ligero.
+
+---
+
 ## 🛠️ Gestión de configuración WiFi dinámica (LittleFS + config.json)
 
 Este proyecto permite almacenar la configuración WiFi en un archivo JSON externo, ubicado en el sistema de archivos del ESP32 (LittleFS).  
@@ -145,7 +173,7 @@ Libre para usar, modificar y mejorar.
 
 ## ✨ Versión actual
 
-**Firmware versión:** `v1.0.0`  
+**Firmware versión:** `v1.1.0`  
 (Ver archivo `/include/version.h` para detalles de versiones.)
 
 ---
