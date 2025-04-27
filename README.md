@@ -114,25 +114,6 @@ Puedes conectar cualquier dispositivo a este AP y solicitar hora NTP directament
 
 ---
 
-## 🖥️ Acceso Web de Monitoreo
-
-Una vez el ESP32 esté operativo (ya sea en modo STA o AP), puedes acceder desde cualquier navegador web a su IP local:
-
-- **URL**: `http://<IP-DEL-ESP32>/`
-
-La página mostrará en tiempo real:
-
-- Hora UTC actualizada
-- Número de satélites recibidos
-- Calidad de señal GPS (Buena, Débil, Sin señal)
-- Estado de red WiFi o AP
-- Stratum (estrato NTP)
-- Uptime del dispositivo
-- Histórico de últimas 10 peticiones NTP
-
-🔄 Sin dependencias externas. Funcionamiento rápido y ligero.
-
----
 
 ## 🛠️ Gestión de configuración WiFi dinámica (LittleFS + config.json)
 
@@ -167,6 +148,27 @@ Esto cargará el archivo `config.json` en el sistema de archivos LittleFS del ES
 - Al arrancar, el ESP32 intentará leer `/config.json`.
 - Si encuentra el SSID y contraseña correctos, intentará conectarse automáticamente.
 - Si no encuentra `config.json`, o no puede conectarse, crea su propio Access Point.
+
+---
+
+
+## 🖥️ Acceso Web de Monitoreo
+
+Una vez el ESP32 esté operativo (ya sea en modo STA o AP), puedes acceder desde cualquier navegador web a su IP local:
+
+- **URL**: `http://<IP-DEL-ESP32>/`
+
+La página mostrará en tiempo real:
+
+- Hora UTC actualizada
+- Número de satélites recibidos
+- Calidad de señal GPS (Buena, Débil, Sin señal)
+- Estado de red WiFi o AP
+- Stratum (estrato NTP)
+- Uptime del dispositivo
+- Histórico de últimas 10 peticiones NTP
+
+🔄 Sin dependencias externas. Funcionamiento rápido y ligero.
 
 ---
 
