@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/WebDashboard-Yes-blueviolet.svg" alt="Web Dashboard">
 </p>
 
-Servidor NTP de estrato 1 utilizando GPS con PPS, pantalla OLED y ESP32-C3.  
+Servidor NTP de estrato 1 utilizando GPS con PPS, pantalla OLED y ESP32-C3.
 Con funcionamiento automático en modo WiFi cliente (STA) o punto de acceso (AP) cuando no se detecta red disponible.
 
 ---
@@ -54,8 +54,6 @@ Con funcionamiento automático en modo WiFi cliente (STA) o punto de acceso (AP)
 ---
 
 ## 🖼️ Esquema de conexión
-
-*(Puedes reemplazar esta imagen con tu propia fotografía o diagrama)*
 
 ![Esquema de conexión](https://via.placeholder.com/800x400?text=Esquema+Conexion+ESP32-C3+GPS+OLED)
 
@@ -114,24 +112,27 @@ Puedes conectar cualquier dispositivo a este AP y solicitar hora NTP directament
 
 ---
 
-
 ## 🛠️ Gestión de configuración WiFi dinámica (LittleFS + config.json)
 
-Este proyecto permite almacenar la configuración WiFi en un archivo JSON externo, ubicado en el sistema de archivos del ESP32 (LittleFS).  
-Esto permite cambiar el WiFi **sin necesidad de recompilar el firmware**.
+Este proyecto permite almacenar tanto la **configuración WiFi cliente** como la **configuración del Access Point (AP)** en un archivo JSON externo, ubicado en el sistema de archivos del ESP32 (LittleFS).
+
+Así podrás cambiar WiFi o el AP **sin necesidad de recompilar el firmware**.
 
 ### 1. Archivo `config.json`
 
-Dentro de la carpeta `/data/` del proyecto, crear el archivo:
+Dentro de la carpeta `/data/` del proyecto, crear o editar el archivo:
 
 ```json
 {
   "wifi_ssid": "MiRedWifi",
-  "wifi_password": "MiClaveSecreta"
+  "wifi_password": "MiClaveSecreta",
+  "ap_ssid": "Servidor_NTP_GPS",
+  "ap_password": "12345678"
 }
 ```
 
-Cambiar los valores según tu red WiFi real.
+- **wifi_ssid** y **wifi_password**: Datos de tu red WiFi a la que el ESP32-C3 intentará conectarse al arrancar.
+- **ap_ssid** y **ap_password**: Datos del Access Point (nombre y contraseña) que el ESP32-C3 creará si no puede conectarse al WiFi.
 
 ### 2. Subir el Filesystem al ESP32
 
@@ -145,14 +146,23 @@ Esto cargará el archivo `config.json` en el sistema de archivos LittleFS del ES
 
 ### 3. Funcionamiento en el firmware
 
-- Al arrancar, el ESP32 intentará leer `/config.json`.
-- Si encuentra el SSID y contraseña correctos, intentará conectarse automáticamente.
-- Si no encuentra `config.json`, o no puede conectarse, crea su propio Access Point.
+- Al arrancar, el ESP32:
+  - **Primero intenta conectarse** al WiFi configurado.
+  - Si falla, **crea el AP** con los datos configurados en el mismo `config.json`.
+- Toda esta configuración es **dinámica**: puedes modificar `config.json` y re-subirlo sin necesidad de reprogramar el firmware.
 
 ---
 
+## 📋 Resumen rápido
 
-## 🖥️ Acceso Web de Monitoreo
+| Situación | Acción del dispositivo |
+|:---|:---|
+| Encuentra el WiFi | Se conecta como cliente STA |
+| No encuentra el WiFi | Crea su propio Access Point usando `ap_ssid` y `ap_password` |
+
+---
+
+## 💻 Acceso Web de Monitoreo
 
 Una vez el ESP32 esté operativo (ya sea en modo STA o AP), puedes acceder desde cualquier navegador web a su IP local:
 
@@ -174,14 +184,15 @@ La página mostrará en tiempo real:
 
 ## 📄 Licencia
 
-MIT License.  
+MIT License.
 Libre para usar, modificar y mejorar.
 
 ---
 
 ## ✨ Versión actual
 
-**Firmware versión:** `v1.1.0`  
+**Firmware versión:** `v1.2.0`
 (Ver archivo `/include/version.h` para detalles de versiones.)
 
 ---
+
