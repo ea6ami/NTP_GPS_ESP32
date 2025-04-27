@@ -1,5 +1,13 @@
 # NTP GPS Stratum 1 Server - ESP32-C3
 
+<p align="center">
+  <img src="https://img.shields.io/badge/Platform-ESP32C3-blue.svg" alt="Platform ESP32-C3">
+  <img src="https://img.shields.io/badge/Framework-Arduino-green.svg" alt="Framework Arduino">
+  <img src="https://img.shields.io/badge/License-MIT-lightgrey.svg" alt="License MIT">
+  <img src="https://img.shields.io/badge/Status-Active-brightgreen.svg" alt="Project Status">
+  <img src="https://img.shields.io/badge/WebDashboard-Yes-blueviolet.svg" alt="Web Dashboard">
+</p>
+
 Servidor NTP de estrato 1 utilizando GPS con PPS, pantalla OLED y ESP32-C3.  
 Con funcionamiento automático en modo WiFi cliente (STA) o punto de acceso (AP) cuando no se detecta red disponible.
 
