@@ -61,10 +61,13 @@ void ProcessNTPRequest(AsyncUDPPacket& packet) {
     buf[17] = (uint8_t)(secNTP >> 16);
     buf[18] = (uint8_t)(secNTP >> 8);
     buf[19] = (uint8_t)(secNTP & 0xFF);
-    buf[20] = (uint8_t)(frac >> 24);
-    buf[21] = (uint8_t)(frac >> 16);
-    buf[22] = (uint8_t)(frac >> 8);
-    buf[23] = (uint8_t)(frac & 0xFF);
+    
+    uint32_t fracNTP = (uint32_t)((double)frac * 4294.967296);
+
+    buf[20] = (fracNTP >> 24) & 0xFF;
+    buf[21] = (fracNTP >> 16) & 0xFF;
+    buf[22] = (fracNTP >> 8) & 0xFF;
+    buf[23] = fracNTP & 0xFF;
 
     buf[32] = buf[16]; buf[33] = buf[17]; buf[34] = buf[18]; buf[35] = buf[19];
     buf[36] = buf[20]; buf[37] = buf[21]; buf[38] = buf[22]; buf[39] = buf[23];
