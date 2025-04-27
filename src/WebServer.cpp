@@ -6,6 +6,7 @@
 #include "GPS.h"
 #include "WebServer.h"
 #include "NTPServer.h"
+#include "version.h"
 
 // Variables globales
 volatile unsigned long ntpRequestCount = 0;
@@ -76,6 +77,8 @@ void WebServer_Init() {
         json += "\"stratum\":" + String(ntpStratum) + ",";
         json += "\"uptime\":\"" + String(uptimeStr) + "\",";
         json += "\"requests\":" + String(ntpRequestCount) + ",";
+        json += "\"firmwareVersion\":\"" + String(FW_VERSION_STRING) + "\",";
+
 
         // Agregar historial de peticiones NTP
         json += "\"history\":[";

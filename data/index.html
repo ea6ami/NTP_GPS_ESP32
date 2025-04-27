@@ -3,105 +3,153 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Estado NTP GPS - ESP32-C3</title>
+  <title>Servidor NTP GPS - ESP32-C3</title>
   <style>
-    body { font-family: sans-serif; background: #f4f4f4; margin: 0; padding: 20px; text-align: center; }
-    h1 { font-size: 1.8em; margin-bottom: 0.5em; }
-    table { margin: 0 auto; border-collapse: collapse; min-width: 250px; }
-    th, td { padding: 8px 12px; border-bottom: 1px solid #ccc; text-align: left; }
-    th { font-weight: normal; color: #555; }
-    td { font-weight: bold; }
-    .ok { color: green; }
-    .warn { color: orange; }
-    .err { color: red; }
-    .small { font-size: 0.9em; color: #777; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background-color: #f4f4f4;
+      text-align: center;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+      background-color: #ffffff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .navbar {
+      overflow: hidden;
+      background-color: #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .navbar a {
+      color: #f2f2f2;
+      padding: 14px 16px;
+      text-decoration: none;
+      font-size: 17px;
+    }
+    .navbar a:hover {
+      background-color: #ddd;
+      color: black;
+    }
+    .navbar .version {
+      color: #f2f2f2;
+      font-size: 14px;
+      margin-right: 10px;
+    }
+    h1 {
+      margin-top: 20px;
+    }
+    #utcTime {
+      font-size: 48px;
+      margin: 20px 0;
+    }
+    table {
+      margin: 0 auto;
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    th {
+      background-color: #333;
+      color: white;
+    }
+    .ok {
+      color: green;
+    }
+    .warn {
+      color: orange;
+    }
+    .err {
+      color: red;
+    }
   </style>
 </head>
 <body>
 
-<h1>Servidor NTP GPS - ESP32-C3</h1>
+  <div class="container">
 
-<div id="utcTime" style="font-size:2em; margin:20px 0;">--:--:--</div>
+    <div class="navbar">
+      <a href="/">Estado</a>
+      <div class="version" id="fwVersion">FW v?.?.?</div>
+    </div>
 
-<div class="card">
-  <h3>Estado del sistema</h3>
-  <table>
-    <tr><th>Satélites:</th><td id="satellites">0</td></tr>
-    <tr><th>Señal GPS:</th><td id="quality" class="err">Sin señal</td></tr>
-    <tr><th>Modo WiFi:</th><td id="wifiMode">--</td></tr>
-    <tr><th>SSID:</th><td id="wifiSSID">--</td></tr>
-    <tr><th>IP Local:</th><td id="wifiIP">--</td></tr>
-    <tr><th>Stratum:</th><td id="stratum">--</td></tr>
-    <tr><th>Uptime:</th><td id="uptime">--</td></tr>
-    <tr><th>Total NTP Requests:</th><td id="requests">0</td></tr>
-  </table>
-</div>
+    <h1>Servidor NTP GPS - ESP32-C3</h1>
+    <div id="utcTime">--:--:--</div>
 
-<div class="card" style="margin-top: 30px;">
-  <h3>Últimas 10 solicitudes NTP</h3>
-  <table id="historyTable">
-    <thead>
-      <tr><th>#</th><th>Hora</th></tr>
-    </thead>
-    <tbody>
-    </tbody>
-  </table>
-</div>
+    <h2>Estado del Sistema</h2>
+    <table>
+      <tr><th>Elemento</th><th>Valor</th></tr>
+      <tr><td>Satélites</td><td id="satellites">0</td></tr>
+      <tr><td>Señal GPS</td><td id="quality" class="err">Sin señal</td></tr>
+      <tr><td>SSID WiFi</td><td id="wifiSSID">--</td></tr>
+      <tr><td>IP Local</td><td id="wifiIP">--</td></tr>
+      <tr><td>Stratum</td><td id="stratum">--</td></tr>
+      <tr><td>Uptime</td><td id="uptime">--</td></tr>
+      <tr><td>Total Peticiones NTP</td><td id="requests">0</td></tr>
+    </table>
 
-<script>
-const utcElem = document.getElementById('utcTime');
-const satElem = document.getElementById('satellites');
-const qualityElem = document.getElementById('quality');
-const wifiModeElem = document.getElementById('wifiMode');
-const wifiSSIDElem = document.getElementById('wifiSSID');
-const wifiIPElem = document.getElementById('wifiIP');
-const stratumElem = document.getElementById('stratum');
-const uptimeElem = document.getElementById('uptime');
-const requestsElem = document.getElementById('requests');
-const historyTable = document.getElementById('historyTable').querySelector('tbody');
+    <h2>Historial de Solicitudes NTP</h2>
+    <table>
+      <thead><tr><th>#</th><th>Hora</th></tr></thead>
+      <tbody id="historyTable"></tbody>
+    </table>
 
-async function fetchStatus() {
-    try {
+  </div>
+
+  <script>
+    const utcElem = document.getElementById('utcTime');
+    const satElem = document.getElementById('satellites');
+    const qualityElem = document.getElementById('quality');
+    const wifiSSIDElem = document.getElementById('wifiSSID');
+    const wifiIPElem = document.getElementById('wifiIP');
+    const stratumElem = document.getElementById('stratum');
+    const uptimeElem = document.getElementById('uptime');
+    const requestsElem = document.getElementById('requests');
+    const fwVersionElem = document.getElementById('fwVersion');
+    const historyTable = document.getElementById('historyTable');
+
+    async function fetchStatus() {
+      try {
         const res = await fetch('/status.json');
         const data = await res.json();
-
         utcElem.textContent = data.time || "--:--:--";
         satElem.textContent = data.satellites;
         qualityElem.textContent = data.quality;
-        wifiModeElem.textContent = (data.stratum === 1) ? "Cliente WiFi" : "AP Modo";
         wifiSSIDElem.textContent = data.ssid;
         wifiIPElem.textContent = data.ip;
         stratumElem.textContent = data.stratum;
         uptimeElem.textContent = data.uptime;
         requestsElem.textContent = data.requests;
+        fwVersionElem.textContent = "FW v" + data.firmwareVersion;
 
-        // Ajustar color calidad GPS
-        if (data.quality === "Buena") {
-            qualityElem.className = "ok";
-        } else if (data.quality === "Débil") {
-            qualityElem.className = "warn";
-        } else {
-            qualityElem.className = "err";
-        }
+        if (data.quality === "Buena") qualityElem.className = "ok";
+        else if (data.quality === "Débil") qualityElem.className = "warn";
+        else qualityElem.className = "err";
 
-        // Actualizar tabla historial
         historyTable.innerHTML = '';
         if (data.history && data.history.length > 0) {
-            data.history.forEach((ts, idx) => {
-                if (ts && ts.length > 0) {
-                    const row = `<tr><td>${idx + 1}</td><td>${ts}</td></tr>`;
-                    historyTable.innerHTML += row;
-                }
-            });
+          data.history.forEach((ts, idx) => {
+            if (ts.length > 0) {
+              const row = `<tr><td>${idx+1}</td><td>${ts}</td></tr>`;
+              historyTable.innerHTML += row;
+            }
+          });
         }
-    } catch (e) {
-        console.error('Error al obtener estado:', e);
+      } catch (error) {
+        console.error('Error fetching status:', error);
+      }
     }
-}
 
-setInterval(fetchStatus, 1000);
-fetchStatus();
-</script>
+    setInterval(fetchStatus, 1000);
+    fetchStatus();
+  </script>
 
 </body>
 </html>
