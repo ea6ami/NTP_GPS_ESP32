@@ -4,7 +4,7 @@
 #include "GPS.h"
 #include <Arduino.h>
 #include <AsyncUDP.h>
-#include "WebServer.h" 
+#include "WebServer.h"
 
 extern volatile unsigned long ntpRequestCount;
 
@@ -37,43 +37,50 @@ void ProcessNTPRequest(AsyncUDPPacket& packet) {
         buf[24 + i] = data[40 + i];
     }
 
-    uint8_t li = 0;
+    // Variables para construir la respuesta
+    uint32_t epoch;
+    uint32_t frac;
+    bool gpsSynced = GPS_IsTimeSync(); // Consultamos si tenemos GPS sincronizado
+    GPS_GetTime(epoch, frac);
+
+    uint8_t li = 0;           // Leap Indicator: 0 = sin advertencia
+    uint8_t stratum = NTP_STRATUM; // Normalmente estrato 1
+    if (!gpsSynced || (epoch == 0 && frac == 0)) {
+        li = 3;               // 3 = Clock not synchronized
+        stratum = 16;         // Stratum 16 indica no sincronizado
+    }
+
     uint8_t ver = 4;
-    uint8_t mode = 4;
+    uint8_t mode = 4; // Server
     buf[0] = (li << 6) | (ver << 3) | (mode);
-    buf[1] = NTP_STRATUM;
+    buf[1] = stratum;
     buf[2] = data[2];
     buf[3] = (uint8_t)NTP_PRECISION;
 
     buf[12] = 'G'; buf[13] = 'P'; buf[14] = 'S'; buf[15] = ' ';
 
-    uint32_t epoch;
-    uint32_t frac;
-    GPS_GetTime(epoch, frac);
-
-    if (epoch == 0 && frac == 0) {
-        return;
-    }
-
     uint32_t secNTP = epoch + NTP_EPOCH_OFFSET;
-
-    buf[16] = (uint8_t)(secNTP >> 24);
-    buf[17] = (uint8_t)(secNTP >> 16);
-    buf[18] = (uint8_t)(secNTP >> 8);
-    buf[19] = (uint8_t)(secNTP & 0xFF);
-    
     uint32_t fracNTP = (uint32_t)((double)frac * 4294.967296);
 
-    buf[20] = (fracNTP >> 24) & 0xFF;
-    buf[21] = (fracNTP >> 16) & 0xFF;
-    buf[22] = (fracNTP >> 8) & 0xFF;
-    buf[23] = fracNTP & 0xFF;
+    // Si estamos sincronizados, rellenamos los timestamps reales
+    if (gpsSynced && (epoch != 0 || frac != 0)) {
+        buf[16] = (uint8_t)(secNTP >> 24);
+        buf[17] = (uint8_t)(secNTP >> 16);
+        buf[18] = (uint8_t)(secNTP >> 8);
+        buf[19] = (uint8_t)(secNTP & 0xFF);
 
-    buf[32] = buf[16]; buf[33] = buf[17]; buf[34] = buf[18]; buf[35] = buf[19];
-    buf[36] = buf[20]; buf[37] = buf[21]; buf[38] = buf[22]; buf[39] = buf[23];
+        buf[20] = (uint8_t)(fracNTP >> 24);
+        buf[21] = (uint8_t)(fracNTP >> 16);
+        buf[22] = (uint8_t)(fracNTP >> 8);
+        buf[23] = (uint8_t)(fracNTP & 0xFF);
 
-    buf[40] = buf[16]; buf[41] = buf[17]; buf[42] = buf[18]; buf[43] = buf[19];
-    buf[44] = buf[20]; buf[45] = buf[21]; buf[46] = buf[22]; buf[47] = buf[23];
+        buf[32] = buf[16]; buf[33] = buf[17]; buf[34] = buf[18]; buf[35] = buf[19];
+        buf[36] = buf[20]; buf[37] = buf[21]; buf[38] = buf[22]; buf[39] = buf[23];
+
+        buf[40] = buf[16]; buf[41] = buf[17]; buf[42] = buf[18]; buf[43] = buf[19];
+        buf[44] = buf[20]; buf[45] = buf[21]; buf[46] = buf[22]; buf[47] = buf[23];
+    }
+    // Si no estamos sincronizados, dejamos los timestamps en cero (buf ya inicializado a cero arriba)
 
     packet.write(buf, sizeof(buf));
     packet.flush();
