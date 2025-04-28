@@ -31,7 +31,7 @@ bool ConfigManager_Load() {
         return false;
     }
 
-    JsonDocument doc;
+    DynamicJsonDocument doc(2048);
     DeserializationError error = deserializeJson(doc, configFile);
     configFile.close();
 
