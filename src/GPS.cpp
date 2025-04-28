@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <esp_task_wdt.h>
 #include <time.h>
+#include <esp_timer.h>
 
 // Objeto GPS global
 static TinyGPSPlus gps;
@@ -20,18 +21,23 @@ static volatile uint32_t gpsEpoch = 0;
 static unsigned long lastGPSDataMillis = 0;
 static const unsigned long GPS_DATA_TIMEOUT_MS = 30000; // 30s
 
+static volatile uint64_t lastPPSUs = 0;
+
 void IRAM_ATTR onGPSPPS() {
-    unsigned long now = micros();
+    // capturamos timestamp en µs con resolución real
+    lastPPSUs = esp_timer_get_time();
+
     if (!timeSync) {
         if (newGPSfix) {
+            // primer pulso tras fix
             currentSecond = gpsEpoch + 1;
-            timeSync = true;
-            newGPSfix = false;
+            timeSync      = true;
+            newGPSfix     = false;
         }
     } else {
+        // para cada PPS incrementamos el segundo
         currentSecond++;
     }
-    lastPPSMicros = now;
 }
 
 void GPS_Init() {
@@ -86,9 +92,9 @@ int GPS_GetSats() {
 
 void GPS_GetTime(uint32_t &epochSeconds, uint32_t &microseconds) {
     noInterrupts();
-    bool synced = timeSync;
-    uint32_t sec = currentSecond;
-    unsigned long lastMicros = lastPPSMicros;
+    bool synced       = timeSync;
+    uint32_t sec      = currentSecond;
+    uint64_t ppsStamp = lastPPSUs;
     interrupts();
 
     if (!synced) {
@@ -97,18 +103,12 @@ void GPS_GetTime(uint32_t &epochSeconds, uint32_t &microseconds) {
         return;
     }
 
-    unsigned long now = micros();
-    unsigned long delta = (now >= lastMicros) ? (now - lastMicros)
-                                              : (ULONG_MAX - lastMicros + 1 + now);
-    if (delta > 1000000UL) {
-        delta = 1000000UL;
-    }
-
-    uint64_t frac64 = (uint64_t)delta * 4294967296ULL / 1000000ULL;
-    uint32_t frac = (uint32_t)frac64;
+    // fracción NTP = (µs_restantes / 1e6) * 2^32
+    // pero si solo necesitas la microparte, devuelves (ppsStamp % 1e6)
     epochSeconds = sec;
-    microseconds = frac;
+    microseconds = ppsStamp % 1000000UL;
 }
+
 
 String GPS_GetTimeString() {
     if (!GPS_IsTimeSync()) return "--:--:--";
